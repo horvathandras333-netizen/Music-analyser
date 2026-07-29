@@ -8,7 +8,7 @@
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 When generating loopable video clips with AI models (e.g. Gemini / Veo), video duration must align perfectly with musical bars and subdivisions to prevent visible seams or jarring cuts. 
 
@@ -20,7 +20,7 @@ LoopForge bridges the gap between music and video:
 
 ---
 
-## ✨ Features
+## Features
 
 - **Lightweight Tempo Detection:** In-process spectral-flux onset envelope and autocorrelation detection (no heavy `librosa` dependency).
 - **Sub-Harmonic & Octave Resolution:** Prior-weighted BPM selection with confidence scoring and quick `×2` / `÷2` octave toggle buttons.
@@ -34,7 +34,7 @@ LoopForge bridges the gap between music and video:
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### Prerequisites
 
@@ -51,7 +51,7 @@ pip install -e .
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### 1. Graphical User Interface (GUI)
 
@@ -112,7 +112,7 @@ Not safe for hair fall, smoke, or particles - switch to true-cycle.
 
 ---
 
-## 🛠️ Development & Testing
+## Development & Testing
 
 Run unit & integration tests:
 
@@ -128,6 +128,6 @@ ruff check .
 
 ---
 
-## 📜 License
+## License
 
 MIT License. Free for personal and commercial use.
