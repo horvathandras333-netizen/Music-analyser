@@ -28,12 +28,14 @@ def build_cadence_ladder(bpm: float, beats: int, meter: int = 4) -> list[Cadence
         interval_s = sub_beats * beat_period
         gestures_in_clip = beats / sub_beats
         recommended = 0.9 <= interval_s <= 2.2
+        divides_evenly = (beats % sub_beats == 0)
         cadence.append(
             CadenceRow(
                 label=label,
                 interval_s=round(interval_s, 3),
                 gestures_in_clip=round(gestures_in_clip, 1),
                 recommended=recommended,
+                divides_evenly=divides_evenly,
             )
         )
 

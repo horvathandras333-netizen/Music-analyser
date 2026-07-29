@@ -56,8 +56,9 @@ def test_copy_button_clipboard(qapp):
         frames=240,
         drift_ms=0.0,
         drift_is_subframe=True,
+        tempo_drift_ms=0.0,
         loop_mode="ping_pong",
-        cadence=[CadenceRow(label="per bar", interval_s=2.0, gestures_in_clip=5.0, recommended=True)],
+        cadence=[CadenceRow(label="per bar", interval_s=2.0, gestures_in_clip=5.0, recommended=True, divides_evenly=True)],
     )
     panel.update_spec(analysis, spec)
 

@@ -274,6 +274,7 @@ class MainWindow(QMainWindow):
             fps=self.current_fps,
             meter=self.current_analysis.meter,
             loop_mode=self.current_loop_mode,  # type: ignore
+            downbeat_times=self.current_analysis.downbeat_times,
         )
         self.spec_panel.update_spec(self.current_analysis, spec)
 

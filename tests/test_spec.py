@@ -18,13 +18,13 @@ def test_enumerate_candidates_145_bpm():
 
 def test_enumerate_candidates_174_bpm():
     # At 174 BPM, 10s target -> beat period = 0.3448s.
-    # 28 beats = 9.655s (7 bars)
+    # 32 beats = 11.034s (8 bars, phrase length in {2, 4, 8, 16}) ranks above 28 beats (7 bars)
     candidates = enumerate_candidates(174.0, target_duration_s=10.0)
     assert len(candidates) > 0
     top_beats, top_bars, top_dur = candidates[0]
-    assert top_beats == 28
-    assert top_bars == 7.0
-    assert abs(top_dur - 9.655) < 0.01
+    assert top_beats == 32
+    assert top_bars == 8.0
+    assert abs(top_dur - 11.034) < 0.01
 
 
 def test_frame_alignment_and_drift():
@@ -50,9 +50,19 @@ def test_cadence_ladder_dnb_174_bpm():
 
     per_beat = next(row for row in cadence if row.label == "per beat")
     assert per_beat.recommended is False
+    assert per_beat.divides_evenly is True
 
     per_bar = next(row for row in cadence if row.label == "per bar")
     assert per_bar.recommended is True
+    assert per_bar.divides_evenly is True
+
+
+def test_cadence_row_divides_evenly():
+    # 22 beats with meter 4 -> 5.5 bars.
+    # per bar (4 beats) -> 22 % 4 != 0 -> divides_evenly = False
+    cadence = build_cadence_ladder(145.0, beats=22, meter=4)
+    per_bar = next(row for row in cadence if row.label == "per bar")
+    assert per_bar.divides_evenly is False
 
 
 def test_loopmode_advisory():
@@ -67,5 +77,32 @@ def test_build_clip_spec_integration():
     assert spec.duration_s == 9.931
     assert spec.fps == 24
     assert spec.frames == 238
+    assert spec.tempo_drift_ms == 0.0
     assert spec.loop_mode == "ping_pong"
     assert len(spec.cadence) == 4
+
+
+def test_measured_duration_and_tempo_drift():
+    # Measured downbeats with slight tempo drift (+20ms per bar)
+    downbeat_times = [0.0, 1.675, 3.350, 5.025, 6.700, 8.375, 10.050]
+    spec = build_clip_spec(
+        start_s=0.0,
+        end_s=9.931,
+        bpm=145.0,
+        fps=24,
+        loop_mode="ping_pong",
+        downbeat_times=downbeat_times,
+    )
+    # 6 bars at measured 10.050s vs arithmetic 9.931s -> drift approx +119ms
+    assert spec.duration_s == 10.050
+    assert spec.tempo_drift_ms > 0.0
+
+
+def test_candidate_phrase_length_ranking():
+    # Target 10s at 120 BPM (beat period = 0.5s)
+    # 16 beats = 8.0s (4 bars, phrase length!)
+    # 20 beats = 10.0s (5 bars, non-phrase whole bar)
+    candidates = enumerate_candidates(120.0, target_duration_s=10.0)
+    top_beats = [c[0] for c in candidates[:3]]
+    # Phrase length 4 bars (16 beats) or 8 bars should rank above 5 bars
+    assert 16 in top_beats or 32 in top_beats

@@ -41,13 +41,13 @@ def main(args_list: list[str] | None = None) -> int:
         file_path = Path(parsed_args.path)
         analysis = analyze_track(file_path)
 
+        candidates = enumerate_candidates(
+            analysis.bpm, target_duration_s=parsed_args.target, meter=analysis.meter
+        )
         if parsed_args.start is not None and parsed_args.end is not None:
             start_s = float(parsed_args.start)
             end_s = float(parsed_args.end)
         else:
-            candidates = enumerate_candidates(
-                analysis.bpm, target_duration_s=parsed_args.target, meter=analysis.meter
-            )
             top_duration = candidates[0][2] if candidates else parsed_args.target
 
             start_s = float(parsed_args.start) if parsed_args.start is not None else (
@@ -66,9 +66,10 @@ def main(args_list: list[str] | None = None) -> int:
             fps=parsed_args.fps,
             meter=analysis.meter,
             loop_mode=loop_mode_val,
+            downbeat_times=analysis.downbeat_times,
         )
 
-        report_text = render_report(analysis, spec)
+        report_text = render_report(analysis, spec, candidates=candidates)
         print(report_text)
         return 0
 

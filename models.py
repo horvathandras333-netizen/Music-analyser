@@ -9,6 +9,7 @@ class CadenceRow(BaseModel):
     interval_s: float
     gestures_in_clip: float
     recommended: bool
+    divides_evenly: bool
 
 
 class ClipSpec(BaseModel):
@@ -21,6 +22,7 @@ class ClipSpec(BaseModel):
     frames: int
     drift_ms: float
     drift_is_subframe: bool
+    tempo_drift_ms: float
     loop_mode: Literal["ping_pong", "true_cycle"]
     cadence: list[CadenceRow]
 

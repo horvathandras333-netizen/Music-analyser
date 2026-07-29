@@ -12,11 +12,13 @@ def test_cadence_row_validation():
         interval_s=1.655,
         gestures_in_clip=6.0,
         recommended=True,
+        divides_evenly=True,
     )
     assert row.label == "per bar"
     assert row.interval_s == 1.655
     assert row.gestures_in_clip == 6.0
     assert row.recommended is True
+    assert row.divides_evenly is True
 
 
 def test_clip_spec_validation():
@@ -26,6 +28,7 @@ def test_clip_spec_validation():
             interval_s=1.655,
             gestures_in_clip=6.0,
             recommended=True,
+            divides_evenly=True,
         )
     ]
     spec = ClipSpec(
@@ -38,11 +41,13 @@ def test_clip_spec_validation():
         frames=238,
         drift_ms=14.0,
         drift_is_subframe=True,
+        tempo_drift_ms=0.0,
         loop_mode="ping_pong",
         cadence=cadence,
     )
     assert spec.duration_s == 9.931
     assert spec.loop_mode == "ping_pong"
+    assert spec.tempo_drift_ms == 0.0
     assert len(spec.cadence) == 1
 
     with pytest.raises(ValidationError):
@@ -56,6 +61,7 @@ def test_clip_spec_validation():
             frames=240,
             drift_ms=0.0,
             drift_is_subframe=True,
+            tempo_drift_ms=0.0,
             loop_mode="invalid_mode",  # type: ignore
             cadence=[],
         )
