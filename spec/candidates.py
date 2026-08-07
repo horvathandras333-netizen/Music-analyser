@@ -54,6 +54,8 @@ def enumerate_candidates(
 
     candidates: list[tuple[int, float, float]] = []
     for b in candidate_beats_set:
+        if b % meter != 0:
+            continue
         dur = b * beat_period
         bars = b / meter
         candidates.append((b, round(bars, 3), round(dur, 3)))

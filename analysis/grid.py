@@ -48,12 +48,28 @@ def generate_beat_grid(
     start_phase = find_beat_phase(flux, sample_rate, bpm, hop_size=hop_size)
 
     fps = sample_rate / hop_size
+    half_period = beat_period / 2.0
 
-    # Generate all beat times
+    # Generate beat times with onset-peak refinement: for each arithmetic
+    # position, search for the nearest spectral-flux peak within ±half a beat
+    # period and snap to it. This gives real, per-beat timestamps that drift
+    # with the performance rather than tautological arithmetic intervals.
     beat_times: list[float] = []
     current_time = start_phase
     while current_time < duration_s:
-        beat_times.append(round(current_time, 4))
+        search_start = max(0, int((current_time - half_period) * fps))
+        search_end = min(len(flux) - 1, int((current_time + half_period) * fps))
+        if search_start < search_end < len(flux):
+            window = flux[search_start : search_end + 1]
+            peak_offset = int(np.argmax(window))
+            refined_time = (search_start + peak_offset) / fps
+            # Only accept the refinement if it's within half a beat of the expected position
+            if abs(refined_time - current_time) <= half_period:
+                beat_times.append(round(refined_time, 6))
+            else:
+                beat_times.append(round(current_time, 6))
+        else:
+            beat_times.append(round(current_time, 6))
         current_time += beat_period
 
     if not beat_times:

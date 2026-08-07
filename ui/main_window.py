@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
         # Loop Mode Selector
         control_bar.addWidget(QLabel("Loop Mode:"))
         self.combo_loop_mode = QComboBox()
-        self.combo_loop_mode.addItems(["ping_pong", "true_cycle"])
+        self.combo_loop_mode.addItems(["auto", "ping_pong", "true_cycle"])
         self.combo_loop_mode.currentTextChanged.connect(self._on_loop_mode_changed)
         control_bar.addWidget(self.combo_loop_mode)
 
@@ -267,13 +267,14 @@ class MainWindow(QMainWindow):
         if self.current_analysis is None:
             return
 
+        loop_mode_val = self.current_loop_mode if self.current_loop_mode != "auto" else None
         spec = build_clip_spec(
             start_s=start_s,
             end_s=end_s,
             bpm=self.current_analysis.bpm,
             fps=self.current_fps,
             meter=self.current_analysis.meter,
-            loop_mode=self.current_loop_mode,  # type: ignore
+            loop_mode=loop_mode_val,  # type: ignore
             downbeat_times=self.current_analysis.downbeat_times,
         )
         self.spec_panel.update_spec(self.current_analysis, spec)

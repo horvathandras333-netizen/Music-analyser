@@ -11,7 +11,7 @@ def build_clip_spec(
     bpm: float,
     fps: int = 24,
     meter: int = 4,
-    loop_mode: Literal["ping_pong", "true_cycle"] = "ping_pong",
+    loop_mode: Literal["ping_pong", "true_cycle"] | None = None,
     downbeat_times: list[float] | None = None,
 ) -> ClipSpec:
     """Build a complete ClipSpec model from region selection and BPM.
@@ -22,7 +22,7 @@ def build_clip_spec(
         bpm: Beats per minute.
         fps: Target frame rate (default 24).
         meter: Beats per bar (default 4).
-        loop_mode: Loop mode preference ("ping_pong" or "true_cycle").
+        loop_mode: None = auto-derive from cadence. "ping_pong" forces ping-pong.
         downbeat_times: Optional list of detected downbeat timestamps.
 
     Returns:
@@ -54,6 +54,19 @@ def build_clip_spec(
     frames, drift_ms, drift_is_subframe = calculate_frame_alignment(duration_s, fps)
     cadence = build_cadence_ladder(bpm, beats, meter=meter)
 
+    # Derive loop_mode from cadence: true_cycle when the recommended row
+    # divides evenly and has more than 1 gesture; ping_pong otherwise.
+    # Explicit loop_mode="ping_pong" overrides to force ping-pong.
+    derived_mode: Literal["ping_pong", "true_cycle"] = "ping_pong"
+    for row in cadence:
+        if row.recommended and row.divides_evenly and row.gestures_in_clip > 1:
+            derived_mode = "true_cycle"
+            break
+    if loop_mode is not None:
+        final_mode: Literal["ping_pong", "true_cycle"] = loop_mode
+    else:
+        final_mode = derived_mode
+
     return ClipSpec(
         start_s=round(start_s, 3),
         end_s=round(start_s + duration_s, 3),
@@ -65,6 +78,6 @@ def build_clip_spec(
         drift_ms=drift_ms,
         drift_is_subframe=drift_is_subframe,
         tempo_drift_ms=tempo_drift_ms,
-        loop_mode=loop_mode,
+        loop_mode=final_mode,
         cadence=cadence,
     )

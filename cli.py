@@ -27,9 +27,12 @@ def main(args_list: list[str] | None = None) -> int:
         "--loop-mode",
         type=str,
         choices=["ping_pong", "true_cycle"],
-        default="ping_pong",
-        help="Loop mode preference (default: ping_pong)",
+        default=None,
+        help="Loop mode preference (default: auto-derive from cadence)",
     )
+
+    dump_parser = subparsers.add_parser("dump-grid", help="Dump raw downbeat times and consecutive intervals")
+    dump_parser.add_argument("path", type=str, help="Path to audio file (WAV, MP3, FLAC)")
 
     parsed_args = parser.parse_args(args_list if args_list is not None else sys.argv[1:])
 
@@ -58,7 +61,7 @@ def main(args_list: list[str] | None = None) -> int:
             else:
                 end_s = start_s + top_duration
 
-        loop_mode_val: Literal["ping_pong", "true_cycle"] = parsed_args.loop_mode
+        loop_mode_val: Literal["ping_pong", "true_cycle"] | None = parsed_args.loop_mode
         spec = build_clip_spec(
             start_s=start_s,
             end_s=end_s,
@@ -69,8 +72,28 @@ def main(args_list: list[str] | None = None) -> int:
             downbeat_times=analysis.downbeat_times,
         )
 
-        report_text = render_report(analysis, spec, candidates=candidates)
+        report_text = render_report(
+            analysis, spec, candidates=candidates, target_duration_s=parsed_args.target
+        )
         print(report_text)
+        return 0
+
+    if parsed_args.command == "dump-grid":
+        file_path = Path(parsed_args.path)
+        analysis = analyze_track(file_path)
+
+        print(f"TRACK: {analysis.path.name}")
+        print(f"BPM: {analysis.bpm:.2f} (confidence {analysis.bpm_confidence:.2f})")
+        print(f"Downbeats: {len(analysis.downbeat_times)}")
+        print()
+        print("DOWNBEAT TIMES")
+        for i, t in enumerate(analysis.downbeat_times):
+            print(f"  [{i}] {t:.6f}s")
+        print()
+        print("CONSECUTIVE INTERVALS")
+        for i in range(len(analysis.downbeat_times) - 1):
+            interval = analysis.downbeat_times[i + 1] - analysis.downbeat_times[i]
+            print(f"  [{i}→{i + 1}] {interval:.6f}s")
         return 0
 
     return 0
